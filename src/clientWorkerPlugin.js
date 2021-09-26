@@ -88,4 +88,4 @@ function webWorkerClient() {
     },
   };
 }
-module.exports.default = webWorkerClient;
+module.exports = webWorkerClient;

@@ -67,4 +67,4 @@ function webWorkerReact() {
     },
   };
 }
-module.exports.default = webWorkerReact;
+module.exports = webWorkerReact;

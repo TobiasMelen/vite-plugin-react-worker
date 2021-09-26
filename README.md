@@ -35,15 +35,6 @@ This plugin is a merge of two plugins.
 - **reactWorkerPlugin** will import a fast refresh module to any worker file entry. It will also find any files processed by `@vitejs/react-plugin` and change global references in hot reload code from `window` to `globalThis`.
 - **clientWorkerPlugin** will modify Vites client code to also support websocket listeners and in that case use simplified event handling that doesn't rely on window or document.
 
-The two plugins can be imported separately:
-
-```js
-import {
-  reactWorkerPlugin,
-  clientWorkerPlugin,
-} from "vite-plugin-react-worker";
-```
-
 ## Caveats
 
 Except the already mentioned issues with stability due to patching other code, note the following:
