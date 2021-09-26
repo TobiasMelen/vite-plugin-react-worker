@@ -1,6 +1,6 @@
 {
   "name": "vite-plugin-react-worker",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Vite plugin to support React Fast Refresh in web worker context.",
   "keywords": [
     "vite-plugin",
