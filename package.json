@@ -1,0 +1,31 @@
+{
+  "name": "vite-plugin-react-worker",
+  "version": "0.1.0",
+  "description": "Vite plugin to support React Fast Refresh in web worker context.",
+  "keywords": [
+    "vite-plugin",
+    "react",
+    "fast-refresh",
+    "webworker"
+  ],
+  "main": "index.js",
+  "repository": "https://github.com/tobiasmelen/vite-plugin-react-worker",
+  "author": "Tobias Melen",
+  "license": "MIT",
+  "type": "module",
+  "scripts": {
+    "dev": "vite playground"
+  },
+  "files": [
+    "src/**/*",
+    "index.d.ts"
+  ],
+  "types": "index.d.ts",
+  "peerDependencies": {
+    "vite": "2*"
+  },
+  "devDependencies": {
+    "@types/node": "^16.10.1",
+    "vite": "^2.5.10"
+  }
+}
