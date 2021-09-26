@@ -1,5 +1,5 @@
-import path from "path";
-import os from "os";
+const path = require("path");
+const os = require("os");
 
 //Path to client, implementation logic copied from vite.
 const clientPath = require.resolve("vite/dist/client/client.mjs");

@@ -1,5 +1,4 @@
-import clientWorkerPlugin from "./src/clientWorkerPlugin";
-import reactWorkerPlugin from "./src/reactWorkerPlugin";
-export { clientWorkerPlugin, reactWorkerPlugin };
-const pluginReactWorker = () => [clientWorkerPlugin, reactWorkerPlugin];
-export default pluginReactWorker;
+const clientWorkerPlugin = require("./src/clientWorkerPlugin");
+const reactWorkerPlugin = require("./src/reactWorkerPlugin");
+module.exports = { clientWorkerPlugin, reactWorkerPlugin };
+module.exports.default = () => [clientWorkerPlugin, reactWorkerPlugin];
