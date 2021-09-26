@@ -57,7 +57,7 @@ const onMessageRegex = new RegExp(
  * Plugin to add basic worker support to Vites client code.
  * @returns {import("vite").Plugin}
  */
-export default function webWorkerClient() {
+function webWorkerClient() {
   return {
     name: "webworker-client",
     transform(code, id) {
@@ -88,3 +88,4 @@ export default function webWorkerClient() {
     },
   };
 }
+module.exports.default = webWorkerClient;

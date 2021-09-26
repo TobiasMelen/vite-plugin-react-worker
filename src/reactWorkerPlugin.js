@@ -24,7 +24,7 @@ function escapeRegex(val) {
  * It changes all window references to globalThis and adds fast-refresh preamble to worker entry files.
  * @returns {import("vite").Plugin}
  */
-export default function webWorkerReact() {
+function webWorkerReact() {
   let isServe = false;
   return {
     name: "webworker-react",
@@ -67,3 +67,4 @@ export default function webWorkerReact() {
     },
   };
 }
+module.exports.default = webWorkerReact;
