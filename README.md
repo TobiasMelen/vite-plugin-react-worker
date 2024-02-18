@@ -1,10 +1,10 @@
 # vite-plugin-react-worker
 
+Plugin for [Vite](https://vitejs.dev) to enable react fast-refresh in web worker code. Developed for OffscreenCanvas support in [react-three-fiber](https://github.com/pmndrs/react-three-fiber). 
+
 Last updated for Vite version **5.1.3**.
 
 > :warning: **Any update to Vite is likely to break this plugin!** The plugin hot patches functionality from `vite` and `@vitejs/plugin-react` and is bound to break with updates in either. If you experience developer environment issues, suspect and disable this plugin before raising upstream issues.
-
-Plugin for [Vite](https://vitejs.dev) to enable react fast-refresh in web worker code. Developed for OffscreenCanvas support in [react-three-fiber](https://github.com/pmndrs/react-three-fiber). 
 
 This is experimental and unstable, don't rely on it working.
 
@@ -47,6 +47,7 @@ This plugin is a merge of two plugins.
 
 Except the already mentioned issues with stability due to patching other code, note the following:
 
+- Not tested for SWC usage, assume it wont work.
 - CSS imported in worker context will fail the plugin. This means all css imports must be removed from worker code.
 - No code in workers can rely on window or document
 - Inline workers using `?worker&inline` are not supported.
