@@ -1,13 +1,5 @@
-const path = require("path");
-const os = require("os");
-
-//Path to client, implementation logic copied from vite.
-const clientPath = require.resolve("vite/dist/client/client.mjs");
-const normalizedClientPath = path.posix.normalize(
-  os.platform() === "win32" ? clientPath.replace(/\\/g, "/") : clientPath
-);
-
 //Noop definitions for window things required to be defined in vite/client top scope.
+//document.querySelectorAll is noop polyfilled since vite client is using it everywhere 
 const headerCode = `
 const isWebWorker = typeof WorkerGlobalScope !== 'undefined' && self instanceof WorkerGlobalScope;  
 if(isWebWorker){
@@ -16,12 +8,18 @@ if(isWebWorker){
   const proxyCreator = (objectName) => new Proxy(
     {},
     {
-      get(){ throw new Error(
-\`Vite development client tried to access "\${objectName}" from worker context.
-This is unsupported by vite-plugin-react-worker. 
+      apply(target, prop){
+        throw new Error(\`\${objectName}.\${prop}" was invoked from worker context.
+window and document access does not exist in worker code. 
 Ensure that your worker code does not import css.
-The stacktrace of this Error should also indicate its cause.\`
-      )}
+Returning undefined value\`);
+      },
+      get(target, prop, receiver){
+        if(prop === 'querySelectorAll'){
+          return () => [];
+        }
+        return undefined;
+      }
     }
   )
   globalThis.window = proxyCreator("window");
@@ -29,63 +27,55 @@ The stacktrace of this Error should also indicate its cause.\`
 }
 `;
 
-const socketListener = "socketListener";
-//If webworker, remove message handler and re-add a simplified one.
-const footerCode = `
-  if(isWebWorker){
-    socket.removeEventListener("message", ${socketListener});
-    const handleMessageForWorker = (payload) => {
-      if(payload.type === "update"){
-        payload.updates
-          .filter(update => update.type === "js-update")
-          .forEach(update => queueUpdate(fetchUpdate(update)));
-      }
-    };
-    ${socketListener} = ({data}) => handleMessageForWorker(JSON.parse(data));
-    socket.addEventListener('message', ${socketListener});
-  }
-`;
+//Find vite
+const handleMessageRegex = /function handleMessage\(payload.*{/;
 
-//The existing listener for websockets needs to be named so it can be removed.
-//This regex does not handle changing syntax correctly and risks breaking with updates.
-const onMessageRegex = new RegExp(
-  String.raw`socket.addEventListener\('message',(.*?\})\)\;`,
-  "s"
-);
+const webworkerMessageHandling = `
+  if(isWebWorker){
+    if(payload.type === "update"){
+      payload.updates
+        .filter(update => update.type === "js-update")
+        .forEach(update => hmrClient.queueUpdate(update));
+    }
+    return;
+  }
+`
 
 /**
  * Plugin to add basic worker support to Vites client code.
  * @returns {import("vite").Plugin}
  */
 function webWorkerClient() {
+  
   return {
     name: "webworker-client",
     transform(code, id) {
-      if (id !== normalizedClientPath) {
+      //If this is not the vite client, do nothing
+      if (!id.endsWith("vite/dist/client/client.mjs")) {
         return code;
       }
-      //Find and replace existing socket message listener with named one.
-      //If a webworker loads client it needs to remove the listener and add it
-      const [listenerCode, handlerCode] = code.match(onMessageRegex) ?? [];
-      if (!listenerCode || !handlerCode) {
-        console.error(
+
+      //Add webworker case to message handling
+      const handleMessageString = code.match(handleMessageRegex)[0];
+      if(!handleMessageString){
+          console.error(
           "vite-plugin-react-worker could not parse vite client. Plugin is inactive."
         );
         return code;
       }
-      code = code.replace(
-        listenerCode,
-        `let ${socketListener} = ${handlerCode};` +
-          `socket.addEventListener('message', ${socketListener});`
-      );
+      // console.log(`${handleMessageString}\n${webworkerMessageHandling}`)
+      // const tempCode = code.replace(handleMessageString, `${handleMessageString}${webworkerMessageHandling}`)
+      // console.log(tempCode);
+      code = code.replace(handleMessageString, handleMessageString + webworkerMessageHandling)
       //Only show connecting console message from main client
       code = code.replace(
-        `console.log('[vite] connecting...')`,
-        `!isWebWorker && console.log('[vite] connecting...')`
+        `console.debug('[vite] connecting...')`,
+        `!isWebWorker && console.debug('[vite] connecting...')`
       );
       //Return code wrapped by webworker definition header and footer rewiring.
-      return headerCode + code + footerCode;
+      return headerCode + code;
     },
   };
 }
 module.exports = webWorkerClient;
+

@@ -50,20 +50,31 @@ function webWorkerReact() {
         return;
       }
       //Heuristic to check if code has been modified by react plugin
-      if (code.includes("!window.__vite_plugin_react_preamble_installed__")) {
-        return fastRefreshGlobals.reduce(
-          (acc, global) =>
-            acc.replace(
-              new RegExp(`window.${escapeRegex(global)}`, "g"),
-              `globalThis.${global}`
-            ),
-          code
-        );
-      }
+      const isReactCode = code.includes(
+        "!window.__vite_plugin_react_preamble_installed__"
+      );
+      let formattedCode = isReactCode
+        //Replace all reference to window with globalThis
+        ? fastRefreshGlobals.reduce(
+            (acc, global) =>
+              acc.replace(
+                new RegExp(`window.${escapeRegex(global)}`, "g"),
+                `globalThis.${global}`
+              ),
+            code
+          )
+          //Also replace existing webworker check in file, which would disable fast refresh.
+          .replace(/const inWebWorker = .*;/, `const inWebWorker = false;`)
+        : code;
+
       //If this is a worker entry: import fast-refresh preamble as well.
-      if (id.endsWith("?worker_file")) {
-        return `import "${preamblePath}";${code}`;
-      }
+      const isWorkerEntry =
+        id.includes("?worker_file") ||
+        id.endsWith("?type=module&worker_url_file");
+
+      return isWorkerEntry
+        ? `import "${preamblePath}";${formattedCode}`
+        : formattedCode;
     },
   };
 }
